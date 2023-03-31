@@ -1,0 +1,22 @@
+sudo apt update
+sudo apt install haproxy
+sudo nano /etc/haproxy/haproxy.cfg
+
+frontend http-in
+  bind *:80
+  default_backend servers
+
+sudo nano /etc/haproxy/haproxy.cfg
+
+backend servers
+  balance roundrobin
+  option redispatch
+  retry-on conn-failure empty-response 503
+  server server1 192.168.50.22:80 check check inter 1000 rise 2 fall 1
+  server server2 192.168.50.20:80 check check inter 1000 rise 2 fall 1
+
+sudo systemctl enable haproxy
+
+https://www.haproxy.com/documentation/hapee/latest/service-reliability/retries/retry-on/
+
+

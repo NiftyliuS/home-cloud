@@ -1,0 +1,21 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    [EXTERNAL ETH INTERFACE PLACEHOLDER]:   #Name of the network interface that will connect to your home network
+      dhcp4: false
+      dhcp6: false
+      addresses:
+        - 192.168.1.200/24                  #Router static IP in your home network
+      routes:
+        - to: default
+          via: 192.168.1.1                  #Your home network Gateway ( Router )
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]       #google name servers
+    [INTERLAN ETH INTERFACE PLACEHOLDER]:   #Name of the network interface that will connect to your cluster network
+      dhcp4: false
+      dhcp6: false
+      addresses:
+        - 192.168.50.1/24                   #Router static IP in the Cluster network
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]       #google name servers
