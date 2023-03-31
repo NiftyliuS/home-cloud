@@ -259,7 +259,7 @@ group {
 ```
 
 If everything is good, restart the DHCP server:
-`sudo systemctl start isc-dhcp-server`
+`sudo systemctl restart isc-dhcp-server`
 
 To check what devices are connected to the cluster network at any time, run:
 `dhcp-lease-list`
@@ -275,7 +275,9 @@ MAC                IP              hostname       valid until         manufactur
 ```
 
 **Note:** \
-*Before continuing, run `ping google.com`. If the ping doesn't work, it means that you have an issue with DNS resolvers. To fix that, you need to edit `sudo nano /etc/resolv.conf` and change the `nameserver 127.0.0.53` to `nameserver 8.8.8.8`. This may happen if you installed the OS without a network connection.*
+*Before continuing, run `ping google.com`. If the ping doesn't work, 
+it means that you have an issue with DNS resolvers. To fix that, 
+you need to edit `sudo nano /etc/resolv.conf` and change the `nameserver 127.0.0.53` to `nameserver 8.8.8.8`. This may happen if you installed the OS without a network connection.*
 
 **Now you have a router that doesn't forward any traffic between the two subnets.**
 
@@ -287,7 +289,7 @@ Luckily, that's fairly easy to do.
 First, you need to allow IP forwarding in the sysctl.conf:
 `sudo nano /etc/sysctl.conf`
 Change the following lines:
-```angular2html
+```bash
 net.ipv4.ip_forward=1
 net.ipv6.conf.all.forwarding=1
 ```
@@ -355,7 +357,8 @@ First, we allow the network from Cluster NIC to be sent to Home NIC, giving our 
 
 Next, we block Cluster network access to our Home network IP ranges. This means that the cluster can't access your local network.
 ```bash
-sudo ufw route deny in on enp1s0 out on [Home network NIC] to 192.168.1.0/24 #Blcok traffic from cluster NIC to Home network
+#Blcok traffic from cluster NIC to Home network
+sudo ufw route deny in on enp1s0 out on [Home network NIC] to 192.168.1.0/24
 ```
 
 Restart the UFW service with `sudo systemctl restart ufw`. \
