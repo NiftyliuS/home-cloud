@@ -1,6 +1,7 @@
 # Configuring ubuntu server as a router
 
 ### What do you need:
+- [TL;DR version can be found here.](./ubuntu-server-22.04.tl-dr.md) 
 - **Ubuntu Server 22.04** installed (obviously).
 - **2 Network interfaces**
   - A single network subnet cannot provide the same level of security.
