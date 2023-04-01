@@ -353,8 +353,8 @@ Next, we need to configure some security rules: \
 Replace the IP and Ethernet Interface names with your values and run:
 
 ```bash
-sudo ufw allow in on [Cluster Facing NIC] proto IPV4
-sudo ufw allow out on [Home network NIC] proto IPV4
+sudo ufw allow in on [Cluster Facing NIC]
+sudo ufw allow out on [Home network NIC]
 ```
 **NOTE:** *NIC - Network Interface Card*
 
@@ -364,7 +364,12 @@ Next, we block Cluster network access to our Home network IP ranges. This means 
 for IPV4
 ```bash
 #Blcok traffic from cluster NIC to Home network
-sudo ufw route deny in on [Cluster Facing NIC] out on [Home network NIC] to 192.168.1.0/24 proto IPV4
+sudo ufw route deny in on [Cluster Facing NIC] out on [Home network NIC] to 192.168.1.0/24
+```
+for IPV6 ( we don't forward ipv6 but caution never killed anyone )
+```bash
+#Blcok traffic from cluster NIC to Home network
+sudo ufw route deny in on [Cluster Facing NIC] out on [Home network NIC] to 2a0d:6fc2:19f8::/64
 ```
 
 Reload the UFW service config `sudo ufw reload`. \
