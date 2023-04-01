@@ -5,6 +5,7 @@ const port = 80;
 app.get('/', (req, res) => {
     res.json({
         remoteAddress: req.ip,
+        xForwardedFor: req.header('x-forwarded-for')
     });
 });
 

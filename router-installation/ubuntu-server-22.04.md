@@ -462,6 +462,7 @@ backend servers
   balance roundrobin                        #balance type: round-robin 
   option redispatch                         #when retrying send to anotehr server instead of sticking to the same one
   retry-on conn-failure empty-response 503  #in case of failure retry on another server
+  option forwardfor                         #forward original IP as 'x-forwarded-for' header
   
   #next line defines the server, check every 1000ms that the server is up
   #2 successful checks meaning the server is up
