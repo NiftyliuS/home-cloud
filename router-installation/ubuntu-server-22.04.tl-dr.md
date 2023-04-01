@@ -1,7 +1,16 @@
 # TL;DR version of the ubuntu router instalation
 
+#### Usefull stuff:
+list NICs and their IPs:
+```
+ifconfig -a | awk '/^[a-z]/ { if (ifname) print ifname, ip; ifname=$1; ip="N/A" } /inet / { ip=$2 } END { print ifname, ip }'
+```
+List NICs and their MAC addresses:
+```
+ifconfig -a | awk '/^[a-z]/ {ifname=$1} /ether / {print ifname, ip, $2}'
+```
+
 ### Static IP setup
-- list NICs: `ifconfig -a | awk '/^[a-z]/ {ifname=$1} /inet / {print ifname, $2}'`
 - list netplan files: `ls /etc/netplan`
 - edit netplan file `sudo nano /etc/netplan/01-network-manager-all.yaml`
 - netplan config [sample](./2-nics-sample-config.yaml.yml)
@@ -96,11 +105,23 @@ COMMIT
 ```
 
 Configure UFW rules:\
-- sudo ufw allow in on [Cluster Facing NIC]
-- sudo ufw allow out on [Home network NIC]
-- sudo ufw route deny in on enp1s0 out on [Home network NIC] to 192.168.1.0/24
+- sudo ufw allow in on [Cluster Facing NIC] proto IPV4
+- sudo ufw allow out on [Home network NIC] proto IPV4
+- sudo ufw route deny in on enp1s0 out on [Home network NIC] to 192.168.1.0/24 proto IPV4
+
+block pings to home network as well\
+Edit `sudo nano /etc/ufw/before.rules`\
+Add this above the `#ok icmp code for FORWARD` line we did for IP forwarding
+```bash
+# deny icmp code for FORWARD
+-A ufw-before-forward -p icmp --icmp-type destination-unreachable -i enp1s0 -d 192.168.1.0/24 -j DROP
+-A ufw-before-forward -p icmp --icmp-type time-exceeded -i enp1s0 -d 192.168.1.0/24 -j DROP
+-A ufw-before-forward -p icmp --icmp-type parameter-problem -i enp1s0 -d 192.168.1.0/24 -j DROP
+-A ufw-before-forward -p icmp --icmp-type echo-request -i enp1s0 -d 192.168.1.0/24 -j DROP
+```
 
 Restart UFW - `sudo systemctl restart ufw` \
+**restart the server (reloading and resetting didn't work for me)**`sudo reboot`\
 Verify - `sudo ufw status verbose`
 
 ### Setup HaProxy Load Balancer

@@ -35,11 +35,13 @@ as changing networks can go wrong, and you may not be able to access it via SSH 
 After connecting to your server via SSH, determine the name of each Ethernet interface by finding the names of your network interfaces.
 
 Use ifconfig and run the following command:\
-`ifconfig -a | awk '/^[a-z]/ {ifname=$1} /inet / {print ifname, $2}'`\
+```
+ifconfig -a | awk '/^[a-z]/ { if (ifname) print ifname, ip; ifname=$1; ip="N/A" } /inet / { ip=$2 } END { print ifname, ip }'
+```
 You should get something like:
 ```bash
-enp1s0: 
-enx1c61b46ce491: 192.168.1.200
+enp1s0: N/A
+enx1c61b46ce491: 192.168.1.69
 lo: 127.0.0.1
 ```
 
@@ -92,10 +94,13 @@ network:
 Reboot the server with `sudo reboot`.
 **NOTE:** *If you made a mistake in the config, your network may be down, so have backup access to the server!*
 
-After reboot, verify the interfaces and IPs using:
-`ifconfig -a | awk '/^[a-z]/ {ifname=$1} /inet / {print ifname, $2}'`
-It should look like this:
-
+After reboot, connect to the new static IP you assigned. (In the example case its 192.168.1.200) \
+Verify the interfaces and IPs using:
+```
+ifconfig -a | awk '/^[a-z]/ { if (ifname) print ifname, ip; ifname=$1; ip="N/A" } /inet / { ip=$2 } END { print ifname, ip }'
+```
+If you have the switch connected it should look like this:\
+*Note: if you didnt it will have N/A on the cluster network*
 ```bash
 enp1s0: 10.0.0.1
 enx1c61b46ce491: 192.168.1.200
@@ -218,7 +223,7 @@ group {
       range 10.0.0.2 10.0.0.255;                  #assign IP range of 10.0.0.2-10.0.0.255 ( inclusive )
       # Head Node
       host cluster {
-         hardware ethernet 71-5F-E3-4F-05-44;    #Dont forget to change with mac of your internal connection
+         hardware ethernet 71:5F:E3:4F:05:44;     #Dont forget to change with mac of your internal connection
          fixed-address 10.0.0.1;
       }
    }
@@ -252,7 +257,7 @@ group {
       range 10.0.0.2 10.0.0.255;                  #assign IP range of 10.0.0.2-10.0.0.255 ( inclusive )
       # Head Node
       host cluster {
-         hardware ethernet 71-5F-E3-4F-05-44;    #Dont forget to change with mac of your internal connection
+         hardware ethernet 71:5F:E3:4F:05:44;     #Dont forget to change with mac of your internal connection
          fixed-address 10.0.0.1;
       }
    }
@@ -280,6 +285,9 @@ MAC                IP              hostname       valid until         manufactur
 it means that you have an issue with DNS resolvers. To fix that, 
 you need to edit `sudo nano /etc/resolv.conf` and change the `nameserver 127.0.0.53` to `nameserver 8.8.8.8`. This may happen if you installed the OS without a network connection.*
 
+Reboot the server ( this will be a recurring theme ): `sudo reboot`\
+And test everything to ensure that things work as they should.
+
 **Now you have a router that doesn't forward any traffic between the two subnets.**
 
 ## Set up IP forwarding between two Network Interfaces (NICs)
@@ -292,18 +300,13 @@ First, you need to allow IP forwarding in the sysctl.conf:
 Change the following lines:
 ```bash
 net.ipv4.ip_forward=1
-net.ipv6.conf.all.forwarding=1
 ```
 
 and apply with `sudo sysctl -p`\
 It should show you the changes you just made.
 ```bash
-net.ipv4.ip_forward=1
-net.ipv6.conf.all.forwarding=1
+net.ipv4.ip_forward = 1
 ```
-
-
-
 
 Next, configure the UFW (firewall) to accept IP forward requests:
 Run `sudo nano /etc/default/ufw`
@@ -345,23 +348,26 @@ COMMIT
 ...
 ```
 
+Restart the server after changes: `sudo reboot` \
 Next, we need to configure some security rules: \
 Replace the IP and Ethernet Interface names with your values and run:
 
 ```bash
-sudo ufw allow in on [Cluster Facing NIC]       
-sudo ufw allow out on [Home network NIC]
+sudo ufw allow in on [Cluster Facing NIC] proto IPV4
+sudo ufw allow out on [Home network NIC] proto IPV4
 ```
 **NOTE:** *NIC - Network Interface Card*
 
 First, we allow the network from Cluster NIC to be sent to Home NIC, giving our cluster access to the router and our home network.
 
 Next, we block Cluster network access to our Home network IP ranges. This means that the cluster can't access your local network.
+for IPV4
 ```bash
 #Blcok traffic from cluster NIC to Home network
-sudo ufw route deny in on enp1s0 out on [Home network NIC] to 192.168.1.0/24
+sudo ufw route deny in on [Cluster Facing NIC] out on [Home network NIC] to 192.168.1.0/24 proto IPV4
 ```
 
+Reload the UFW service config `sudo ufw reload`. \
 Restart the UFW service with `sudo systemctl restart ufw`. \
 If everything went correctly, you won't see any errors.
 
@@ -379,16 +385,29 @@ To                         Action      From
 22/tcp (v6)                ALLOW IN    Anywhere (v6)
 
 Anywhere on enp1s0         ALLOW IN    Anywhere
-Anywhere (v6) on enp1s0    ALLOW IN    Anywhere (v6)
-
 Anywhere                   ALLOW OUT   Anywhere on enx1c61b46ce491
-Anywhere (v6)              ALLOW OUT   Anywhere (v6) on enx1c61b46ce491
-
 192.168.1.0/24 on enx1c61b46ce491 DENY FWD    Anywhere on enp1s0
 ```
+Restart the server to ensure that everything is working: `sudo reboot`\
+
+**NOTE:**\
+*UFW interface blocking will only apply after restart of after along while also*\
+*UFW allows pings regardless so it may be confusing when you ping 192.168.1.1 and it works* \
+*to be sure try to navigate to your home router dashboard, you shouldn't be able to do so*
+
+**BONUS**: block pings to home network as well\
+Edit `sudo nano /etc/ufw/before.rules`\
+Add this above the `#ok icmp code for FORWARD` line we did for IP forwarding
+```bash
+# deny icmp code for FORWARD
+-A ufw-before-forward -p icmp --icmp-type destination-unreachable -i enp1s0 -d 192.168.1.0/24 -j DROP
+-A ufw-before-forward -p icmp --icmp-type time-exceeded -i enp1s0 -d 192.168.1.0/24 -j DROP
+-A ufw-before-forward -p icmp --icmp-type parameter-problem -i enp1s0 -d 192.168.1.0/24 -j DROP
+-A ufw-before-forward -p icmp --icmp-type echo-request -i enp1s0 -d 192.168.1.0/24 -j DROP
+```
+**and restart the server (reloading and resetting didn't work for me)**`sudo reboot`\
 
 You should be able to access the internet from your cluster network!
-
 
 ## Setting up the load balancer
 
