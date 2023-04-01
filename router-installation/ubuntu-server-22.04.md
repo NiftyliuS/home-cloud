@@ -91,7 +91,7 @@ network:
         addresses: [8.8.8.8, 8.8.4.4]
 ```
 
-Reboot the server with `sudo reboot`.
+Reboot the server with `sudo reboot`. \
 **NOTE:** *If you made a mistake in the config, your network may be down, so have backup access to the server!*
 
 After reboot, connect to the new static IP you assigned. (In the example case its 192.168.1.200) \
@@ -267,8 +267,9 @@ group {
 If everything is good, restart the DHCP server:
 `sudo systemctl restart isc-dhcp-server`
 
-To check what devices are connected to the cluster network at any time, run:
-`dhcp-lease-list`
+To check what devices are connected to the cluster network at any time, run: \
+`dhcp-lease-list` \
+You might need to reconnect already connected devices
 
 If a device is connected, you should see something like this:
 (You may need to reconnect all the Ethernet cables)
@@ -390,8 +391,13 @@ To                         Action      From
 22/tcp (v6)                ALLOW IN    Anywhere (v6)
 
 Anywhere on enp1s0         ALLOW IN    Anywhere
+Anywhere (v6) on enp1s0    ALLOW IN    Anywhere (v6)
+
 Anywhere                   ALLOW OUT   Anywhere on enx1c61b46ce491
+Anywhere (v6)              ALLOW OUT   Anywhere (v6) on enx1c61b46ce491
+
 192.168.1.0/24 on enx1c61b46ce491 DENY FWD    Anywhere on enp1s0
+2a0d:6fc2:19f8::/64 on enx1c61b46ce491 DENY FWD    Anywhere (v6) on enp1s0
 ```
 Restart the server to ensure that everything is working: `sudo reboot`\
 
@@ -438,25 +444,32 @@ Once you are done, run `haproxy -v` to verify.
 Next, we need to set up the proxy config:
 `sudo nano /etc/haproxy/haproxy.cfg`
 
+Enable port 80 on the firewall from any network\
+`sudo ufw allow http`\
+OR\
+Enable only for external access ( home network or the internet )\
+`sudo ufw allow in on [Home Network Interface Name] to any port 80`
+
 At the end of the file, add:
 ```bash
 frontend http-in
-  bind *:80                     #listen to port 80
+  bind 192.168.1.200:80                     #listen to port 80
   #bind 192.168.1.200:80        #listen to port 80 only in out facing IP address ( home network )
   default_backend servers       #"servers" is a name, you can call it anyway you like
 
 backend servers
+  mode http
   balance roundrobin                        #balance type: round-robin 
   option redispatch                         #when retrying send to anotehr server instead of sticking to the same one
-  retry-on conn-failure empty-response      #in case of failure retry on another server
+  retry-on conn-failure empty-response 503  #in case of failure retry on another server
   
   #next line defines the server, check every 1000ms that the server is up
   #2 successful checks meaning the server is up
   #1 failed check will mark the server as down
   server server1 10.0.0.10:80 check inter 1000 rise 2 fall 1
-  #server server1 10.0.0.11:80 check inter 1000 rise 2 fall 1
-  #server server1 10.0.0.12:80 check inter 1000 rise 2 fall 1
-  #server server1 10.0.0.13:80 check inter 1000 rise 2 fall 1
+  #server server2 10.0.0.11:80 check inter 1000 rise 2 fall 1
+  #server server3 10.0.0.12:80 check inter 1000 rise 2 fall 1
+  #server server4 10.0.0.13:80 check inter 1000 rise 2 fall 1
 ```
 
 *You can experiment with the configuration as you please; here is the one I have chosen for myself.

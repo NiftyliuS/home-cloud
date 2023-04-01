@@ -133,6 +133,11 @@ Verify - `sudo ufw status verbose`
 - `sudo systemctl start haproxy` - start HAProxy
 - `sudo systemctl enable haproxy` - enable HAProxy to run on boot
 
+Allow http:\
+`sudo ufw allow http`\
+OR\
+`sudo ufw allow in on [Home Network Interface Name] to any port 80`
+
 Edit config - `sudo nano /etc/haproxy/haproxy.cfg`
 Add at end of file:
 ```bash
@@ -143,9 +148,10 @@ frontend http-in
   default_backend servers       #"servers" is a name, you can call it anyway you like
 
 backend servers
+  mode http
   balance roundrobin                        #balance type: round-robin 
   option redispatch                         #when retrying send to anotehr server instead of sticking to the same one
-  retry-on conn-failure empty-response      #in case of failure retry on another server
+  retry-on conn-failure empty-response 503  #in case of failure retry on another server
   
   #next line defines the server, check every 1000ms that the server is up
   #2 successful checks meaning the server is up
