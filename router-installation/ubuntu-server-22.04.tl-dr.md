@@ -149,11 +149,12 @@ frontend http-in
 
 backend servers
   mode http
-  balance roundrobin                        #balance type: round-robin 
-  option redispatch                         #when retrying send to anotehr server instead of sticking to the same one
-  retry-on conn-failure empty-response 503  #in case of failure retry on another server
-  option forwardfor                         #forward original IP as 'x-forwarded-for' header
-
+  balance roundrobin                                #balance type: round-robin 
+  option redispatch                                 #when retrying send to anotehr server instead of sticking to the same one
+  retry-on conn-failure empty-response 503          #in case of failure retry on another server
+  option forwardfor                                 #forward original IP as 'x-forwarded-for' header
+  #option forwardfor header x-router-forwarded-for  #optionally set your own header name
+  
   #next line defines the server, check every 1000ms that the server is up
   #2 successful checks meaning the server is up
   #1 failed check will mark the server as down
@@ -183,6 +184,7 @@ Used in this tutorial:
     - https://linuxconfig.org/how-to-turn-on-off-ip-forwarding-in-linux
 - HAproxy setup:
     - https://www.haproxy.com/blog/haproxy-configuration-basics-load-balance-your-servers/
+    - https://serverfault.com/questions/715742/haproxy-not-forwarding-client-headers
 
 For use in older linux distros:
 - static IP setup:
