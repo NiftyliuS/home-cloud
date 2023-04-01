@@ -105,9 +105,10 @@ COMMIT
 ```
 
 Configure UFW rules:\
-- sudo ufw allow in on [Cluster Facing NIC] proto IPV4
-- sudo ufw allow out on [Home network NIC] proto IPV4
-- sudo ufw route deny in on enp1s0 out on [Home network NIC] to 192.168.1.0/24 proto IPV4
+- `sudo ufw allow in on [Cluster Facing NIC]`
+- `sudo ufw allow out on [Home network NIC]`
+- `sudo ufw route deny in on enp1s0 out on [Home network NIC] to 192.168.1.0/24 proto`
+- `sudo ufw route deny in on [Cluster Facing NIC] out on [Home network NIC] to 2a0d:6fc2:19f8::/64`
 
 block pings to home network as well\
 Edit `sudo nano /etc/ufw/before.rules`\
