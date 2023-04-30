@@ -396,9 +396,6 @@ To                         Action      From
 22/tcp                     ALLOW IN    Anywhere
 22/tcp (v6)                ALLOW IN    Anywhere (v6)
 
-Anywhere on enp1s0         ALLOW IN    Anywhere
-Anywhere (v6) on enp1s0    ALLOW IN    Anywhere (v6)
-
 Anywhere                   ALLOW OUT   Anywhere on enx1c61b46ce491
 Anywhere (v6)              ALLOW OUT   Anywhere (v6) on enx1c61b46ce491
 
