@@ -86,7 +86,6 @@ Enable forwarding in system: \
 Edit `sudo nano /etc/sysctl.conf` \
 ```bash
 net.ipv4.ip_forward=1
-net.ipv6.conf.all.forwarding=1
 ```
 Apply - `sudo sysctl -p`
 
@@ -105,10 +104,11 @@ COMMIT
 ```
 
 Configure UFW rules:\
-- `sudo ufw allow in on [Cluster Facing NIC]`
 - `sudo ufw allow out on [Home network NIC]`
 - `sudo ufw route deny in on enp1s0 out on [Home network NIC] to 192.168.1.0/24 proto`
 - `sudo ufw route deny in on [Cluster Facing NIC] out on [Home network NIC] to 2a0d:6fc2:19f8::/64`
+- `sudo ufw allow in on [Cluster Facing NIC]` ( optional and **not recommended** )
+  - allows FULL access from cluster network to the router
 
 block pings to home network as well\
 Edit `sudo nano /etc/ufw/before.rules`\

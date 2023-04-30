@@ -353,10 +353,16 @@ Restart the server after changes: `sudo reboot` \
 Next, we need to configure some security rules: \
 Replace the IP and Ethernet Interface names with your values and run:
 
+To allow the Router to communicate with the internet
 ```bash
-sudo ufw allow in on [Cluster Facing NIC]
 sudo ufw allow out on [Home network NIC]
 ```
+
+(*Not Recommended*) To allow *FULL* access from cluster network to the Router on all ports run: 
+```bash
+sudo ufw allow in on [Cluster Facing NIC]
+```
+*NOTE: you can also allow specific ports the same way`
 **NOTE:** *NIC - Network Interface Card*
 
 First, we allow the network from Cluster NIC to be sent to Home NIC, giving our cluster access to the router and our home network.
