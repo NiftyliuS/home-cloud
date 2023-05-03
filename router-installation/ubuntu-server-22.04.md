@@ -208,7 +208,7 @@ At the bottom of the file, please add the following config:
 NOTE: *Don't forget to enter your values*
 ```bash
 # No service will be given on this subnet
-subnet 192.168.1.0 netmask 255.255.255.0 {
+subnet 10.0.0.0 netmask 255.255.255.0 {
 }
 
 # The internal cluster network
@@ -453,7 +453,7 @@ OR\
 Enable only for external access ( home network or the internet )\
 `sudo ufw allow in on [Home Network Interface Name] to any port 80`
 
-At the end of the file, add:
+At the end of the file, add: ( We will be changing this later to 80 and 443 )
 ```bash
 frontend http-in
   bind 192.168.1.200:80                     #listen to port 80
@@ -510,6 +510,9 @@ Used in this tutorial:
 - HAproxy setup:
   - https://www.haproxy.com/blog/haproxy-configuration-basics-load-balance-your-servers/
   - https://serverfault.com/questions/715742/haproxy-not-forwarding-client-headers
+- SSH public key auth
+  - Enable public key only - https://askubuntu.com/questions/346857/how-do-i-force-ssh-to-only-allow-users-with-a-key-to-log-in
+  - Import GitHub public keys - https://manpages.ubuntu.com/manpages/bionic/man1/ssh-import-id.1.html
 
 For use in older linux distros:
 - static IP setup: 
