@@ -242,7 +242,7 @@ authoritative;
 log-facility local7;
 
 # No service will be given on this subnet
-subnet 192.168.1.0 netmask 255.255.255.0 {
+subnet 10.0.0.0 netmask 255.255.255.0 {
 }
 
 # The internal cluster network
@@ -329,6 +329,17 @@ COMMIT
 Save changes and verify with: \
 `sudo cat /etc/ufw/before.rules`
 
+**BONUS**: block pings to home network as well\
+Edit `sudo nano /etc/ufw/before.rules`\
+Add this above the `#ok icmp code for FORWARD` line we did for IP forwarding
+```bash
+# deny icmp code for FORWARD
+-A ufw-before-forward -p icmp --icmp-type destination-unreachable -i enp1s0 -d 192.168.1.0/24 -j DROP
+-A ufw-before-forward -p icmp --icmp-type time-exceeded -i enp1s0 -d 192.168.1.0/24 -j DROP
+-A ufw-before-forward -p icmp --icmp-type parameter-problem -i enp1s0 -d 192.168.1.0/24 -j DROP
+-A ufw-before-forward -p icmp --icmp-type echo-request -i enp1s0 -d 192.168.1.0/24 -j DROP
+```
+
 Example `/etc/ufw/before.rules`: 
 ```bash
 ...
@@ -409,16 +420,6 @@ Restart the server to ensure that everything is working: `sudo reboot`\
 *UFW allows pings regardless so it may be confusing when you ping 192.168.1.1 and it works* \
 *to be sure try to navigate to your home router dashboard, you shouldn't be able to do so*
 
-**BONUS**: block pings to home network as well\
-Edit `sudo nano /etc/ufw/before.rules`\
-Add this above the `#ok icmp code for FORWARD` line we did for IP forwarding
-```bash
-# deny icmp code for FORWARD
--A ufw-before-forward -p icmp --icmp-type destination-unreachable -i enp1s0 -d 192.168.1.0/24 -j DROP
--A ufw-before-forward -p icmp --icmp-type time-exceeded -i enp1s0 -d 192.168.1.0/24 -j DROP
--A ufw-before-forward -p icmp --icmp-type parameter-problem -i enp1s0 -d 192.168.1.0/24 -j DROP
--A ufw-before-forward -p icmp --icmp-type echo-request -i enp1s0 -d 192.168.1.0/24 -j DROP
-```
 **and restart the server (reloading and resetting didn't work for me)**`sudo reboot`\
 
 You should be able to access the internet from your cluster network!
