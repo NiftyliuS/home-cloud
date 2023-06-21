@@ -55,7 +55,7 @@ NOTE: *It's important to verify that all the network interfaces are detected :)*
 
 - List the network config YAML files:
   `ls /etc/netplan`
-  You should see a list of YAML files you can edit. In my case, I have [01-network-manager-all.yaml](./2-nics-sample-config.yaml.yml).
+  You should see a list of YAML files you can edit. In my case, I have [01-network-manager-all.yaml](./2-nics-sample-config.yml).
 
 - Copy the file `2-nics-sample-config.yaml.yml` and edit it with your server configurations.
 

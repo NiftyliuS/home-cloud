@@ -13,7 +13,7 @@ ifconfig -a | awk '/^[a-z]/ {ifname=$1} /ether / {print ifname, ip, $2}'
 ### Static IP setup
 - list netplan files: `ls /etc/netplan`
 - edit netplan file `sudo nano /etc/netplan/01-network-manager-all.yaml`
-- netplan config [sample](./2-nics-sample-config.yaml.yml)
+- netplan config [sample](./2-nics-sample-config.yml)
 - restart server
 
 ### DHCP server setup
